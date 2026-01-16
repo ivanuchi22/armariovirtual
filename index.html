@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Closet v7 - Edición</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+    <style>
+        :root { --primary: #6c5ce7; --secondary: #a29bfe; --bg: #dfe6e9; --text: #2d3436; --success: #00b894; --danger: #d63031; --warning: #fdcb6e; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; color: var(--text); }
+
+        /* --- AUTH SCREEN --- */
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), #0984e3); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .auth-box { background: white; padding: 30px; border-radius: 15px; width: 300px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .auth-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn-auth { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        /* --- APP UI --- */
+        #app-content { display: none; }
+
+        header { background: var(--primary); color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-logout { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
+
+        nav { display: flex; background: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
+        nav button { flex: 1; min-width: 70px; border: none; background: none; padding: 15px 5px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; color: #b2bec3; transition: 0.3s; }
+        nav button.active { color: var(--primary); border-bottom-color: var(--primary); background: #f8f9fa; }
+
+        main { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+        .section { display: none; animation: fadeIn 0.4s; }
+        .section.active { display: block; }
+        
+        .panel { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        
+        /* GRID DE SUBIDA */
+        .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 600px) { .upload-grid { grid-template-columns: 1fr; } }
+        .preview-box { background: #f1f2f6; height: 220px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px dashed #b2bec3; overflow: hidden; }
+        .preview-box img { width: 100%; height: 100%; object-fit: contain; }
+
+        label { display: block; font-size: 0.8rem; font-weight: bold; color: #636e72; margin: 10px 0 5px; }
+        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #dfe6e9; border-radius: 6px; box-sizing: border-box; }
+        .btn-main { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.2s; box-shadow: 0 4px 6px rgba(108, 92, 231, 0.2); }
+        .btn-main:hover { transform: translateY(-2px); }
+
+        /* GALERÍA */
+        .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; }
+        .chip { background: white; border: 1px solid #dfe6e9; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-3px); }
+        .card img { width: 100%; height: 160px; object-fit: cover; }
+        .card-info { padding: 12px; }
+        .badge { font-size: 0.7rem; background: #f1f2f6; padding: 3px 8px; border-radius: 4px; color: #636e72; }
+        
+        /* BOTONES DE ACCIÓN EN TARJETA */
+        .card-actions { position: absolute; top: 5px; right: 5px; display: flex; gap: 5px; }
+        .btn-icon { background: white; border-radius: 50%; width: 28px; height: 28px; border: none; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+        .btn-del { color: var(--danger); }
+        .btn-edit { color: var(--primary); }
+
+        /* MODAL DE EDICIÓN */
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal-content { background-color: #fefefe; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; position: relative; animation: fadeIn 0.3s; }
+        .close-modal { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-modal:hover { color: black; }
+
+        /* OUTFITS */
+        .outfit-filters { display: flex; gap: 10px; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .outfit-result { display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .outfit-piece { width: 30%; min-width: 120px; background: white; padding: 10px; border-radius: 10px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .outfit-piece img { width: 100%; height: 140px; object-fit: cover; border-radius: 6px; margin-bottom: 5px; }
+        
+        /* SHOP / AFFILIATE */
+        .shop-section { margin-top: 30px; border-top: 2px dashed #b2bec3; padding-top: 20px; }
+        .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+        .shop-item { display: flex; align-items: center; gap: 10px; background: #f0fff4; border: 1px solid #b2bec3; padding: 10px; border-radius: 8px; cursor: pointer; }
+        .shop-img { width: 50px; height: 50px; background: #ddd; border-radius: 4px; }
+        
+        /* ESTADÍSTICAS */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-num { font-size: 1.8rem; font-weight: bold; color: var(--primary); display: block; }
+        
+        .vinted-card { background: #fff0f1; border-left: 5px solid var(--danger); padding: 15px; margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-radius: 8px; }
+        .vinted-btn { background: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s infinite; display: none; margin: 10px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h2>👗 Smart Closet</h2>
+            <input type="email" id="auth-email" placeholder="Email">
+            <input type="password" id="auth-pass" placeholder="Contraseña">
+            <button class="btn-auth" id="btn-auth-action">Entrar / Registrarse</button>
+            <p id="auth-error" style="color:white; margin-top:10px; font-size:0.9rem;"></p>
+        </div>
+    </div>
+
+    <div id="app-content">
+        <header>
+            <div style="font-weight:bold;">☁️ Armario Cloud AI</div>
+            <button class="btn-logout" id="btn-logout">Salir</button>
+        </header>
+
+        <nav>
+            <button onclick="nav('upload')" class="active" id="nav-upload">➕ Subir</button>
+            <button onclick="nav('gallery')" id="nav-gallery">👗 Armario</button>
+            <button onclick="nav('outfit')" id="nav-outfit">✨ Outfits</button>
+            <button onclick="nav('stats')" id="nav-stats">📊 Análisis</button>
+        </nav>
+
+        <main>
+            <div id="upload" class="section active">
+                <div class="panel">
+                    <div class="upload-grid">
+                        <div>
+                            <input type="file" id="inpFile" accept="image/*">
+                            <div class="preview-box" id="previewBox"><span>📷 Sube tu foto</span></div>
+                            <div class="loader" id="loader"></div>
+                            <p id="ai-msg" style="text-align:center; color:var(--primary); font-weight:bold; font-size:0.9rem;"></p>
+                        </div>
+                        <div>
+                            <h3>Nueva Prenda</h3>
+                            <label>Categoría</label>
+                            <select id="catInput">
+                                <option value="top">Parte Superior</option>
+                                <option value="bottom">Parte Inferior</option>
+                                <option value="shoes">Calzado</option>
+                                <option value="coat">Abrigo</option>
+                                <option value="access">Accesorio</option>
+                            </select>
+
+                            <div style="display:flex; gap:10px;">
+                                <div style="flex:1">
+                                    <label>Estilo</label>
+                                    <select id="styleInput">
+                                        <option value="casual">Casual</option>
+                                        <option value="elegante">Elegante</option>
+                                        <option value="urbano">Urbano</option>
+                                        <option value="sport">Sport</option>
+                                    </select>
+                                </div>
+                                <div style="flex:1">
+                                    <label>Temporada</label>
+                                    <select id="seasonInput">
+                                        <option value="verano">Verano</option>
+                                        <option value="invierno">Invierno</option>
+                                        <option value="atemporal">Atemporal</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <label>Color</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="color" id="colorPicker" style="height:35px;">
+                                <input type="text" id="colorHex" readonly>
+                            </div>
+
+                            <label>Descripción</label>
+                            <input type="text" id="descInput" placeholder="Ej. Camisa lino blanca">
+                            
+                            <button class="btn-main" id="btn-save">Guardar en la Nube</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="gallery" class="section">
+                <div class="filter-chips">
+                    <div class="chip active" onclick="filterGallery('all', this)">Todo</div>
+                    <div class="chip" onclick="filterGallery('top', this)">Tops</div>
+                    <div class="chip" onclick="filterGallery('bottom', this)">Pantalones</div>
+                    <div class="chip" onclick="filterGallery('shoes', this)">Zapatos</div>
+                    <div class="chip" onclick="filterGallery('coat', this)">Abrigos</div>
+                </div>
+                <div id="galleryGrid" class="gallery-grid"></div>
+                <p id="emptyMsg" style="text-align:center; margin-top:20px; display:none; color:#777">Vacío</p>
+            </div>
+
+            <div id="outfit" class="section">
+                <div class="panel">
+                    <h2>Generador de Estilo</h2>
+                    <div class="outfit-filters">
+                        <select id="fStyle" style="margin:0"><option value="all">Estilo Cualquiera</option><option value="casual">Casual</option><option value="elegante">Elegante</option><option value="urbano">Urbano</option></select>
+                        <select id="fSeason" style="margin:0"><option value="all">Temporada Cualquiera</option><option value="verano">Verano</option><option value="invierno">Invierno</option></select>
+                    </div>
+                    <button class="btn-main" onclick="generateOutfit()">🎲 Crear Outfit</button>
+                    <div id="outfitResult" class="outfit-result"></div>
+                    
+                    <div id="shopSection" class="shop-section" style="display:none;">
+                        <h4 style="margin:0 0 10px 0;">🛍️ Completa el look (Recomendado)</h4>
+                        <div class="shop-grid">
+                            <div class="shop-item" onclick="alert('Redirigiendo a Amazon...')">
+                                <div class="shop-img" style="background:#555"></div>
+                                <div><b>Bolso Cuero</b><br><span style="color:green">29.99€</span></div>
+                            </div>
+                            <div class="shop-item" onclick="alert('Redirigiendo a Zara...')">
+                                <div class="shop-img" style="background:#888"></div>
+                                <div><b>Cinturón</b><br><span style="color:green">15.50€</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="stats" class="section">
+                <div class="panel">
+                    <h2>📊 Análisis de Armario</h2>
+                    <div class="stats-grid">
+                        <div class="stat-box"><span class="stat-num" id="totalItems">0</span><small>Prendas</small></div>
+                        <div class="stat-box"><span class="stat-num" style="color:var(--success)">85%</span><small>Uso</small></div>
+                    </div>
+                    <h3>Prenda más usada</h3>
+                    <div id="mostWorn" style="display:flex; align-items:center; gap:15px; background:#f0f9ff; padding:10px; border-radius:8px;">
+                        <div><b>Análisis en proceso...</b><br><small>Sube ropa para ver datos.</small></div>
+                    </div>
+                    <div class="vinted-card" id="vintedCard" style="display:none;">
+                        <div><b>⚠️ Oportunidad de Venta</b><p style="margin:5px 0; font-size:0.9rem;">Sin uso hace 6 meses.</p></div>
+                        <button class="vinted-btn" onclick="alert('Conectando con Vinted...')">Vender</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            <h2>✏️ Editar Prenda</h2>
+            
+            <label>Categoría</label>
+            <select id="editCat">
+                <option value="top">Parte Superior</option>
+                <option value="bottom">Parte Inferior</option>
+                <option value="shoes">Calzado</option>
+                <option value="coat">Abrigo</option>
+                <option value="access">Accesorio</option>
+            </select>
+
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1"><label>Estilo</label><select id="editStyle"><option value="casual">Casual</option><option value="elegante">Elegante</option><option value="urbano">Urbano</option><option value="sport">Sport</option></select></div>
+                <div style="flex:1"><label>Temporada</label><select id="editSeason"><option value="verano">Verano</option><option value="invierno">Invierno</option><option value="atemporal">Atemporal</option></select></div>
+            </div>
+            
+            <label>Color</label>
+            <div style="display:flex; gap:5px;">
+                <input type="color" id="editColorPicker" style="height:35px;">
+                <input type="text" id="editColorHex" readonly>
+            </div>
+
+            <label>Descripción</label>
+            <input type="text" id="editDesc">
+            
+            <button class="btn-main" onclick="saveEdit()">💾 Guardar Cambios</button>
+        </div>
+    </div>
+
+    <canvas id="hiddenCanvas" style="display:none;"></canvas>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } 
+            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc, query, where } 
+            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // !!!!!! PEGA TUS CLAVES AQUÍ !!!!!!
+        const firebaseConfig = {
+            apiKey: "AIzaSyC64wNZ-WDjm9PR6VrbDdLlXcofYw3iv44",
+            authDomain: "armariodemogratis.firebaseapp.com",
+            projectId: "armariodemogratis",
+            storageBucket: "armariodemogratis.firebasestorage.app",
+            messagingSenderId: "892808665541",
+            appId: "1:892808665541:web:e5500dea81f5f59c6a93ac"
+        };
+
+
+        // INICIALIZACIÓN
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch(e) { console.error("Faltan claves"); }
+        
+        let currentUser = null;
+        let wardrobeData = []; 
+
+        // AUTH
+        document.getElementById('btn-auth-action').addEventListener('click', async () => {
+            const e = document.getElementById('auth-email').value;
+            const p = document.getElementById('auth-pass').value;
+            try {
+                try { await signInWithEmailAndPassword(auth, e, p); } 
+                catch(err) { await createUserWithEmailAndPassword(auth, e, p); }
+            } catch(error) { document.getElementById('auth-error').innerText = "Error: " + error.message; }
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+
+        onAuthStateChanged(auth, (user) => {
+            if(user) {
+                currentUser = user;
+                document.getElementById('auth-screen').style.display='none';
+                document.getElementById('app-content').style.display='block';
+                loadData();
+            } else {
+                currentUser = null;
+                document.getElementById('auth-screen').style.display='flex';
+                document.getElementById('app-content').style.display='none';
+            }
+        });
+
+        // IA & COLOR
+        let model, currentBase64;
+        (async ()=> { try { model = await mobilenet.load(); } catch(e){} })();
+
+        document.getElementById('inpFile').addEventListener('change', function() {
+            const f = this.files[0]; if(!f) return;
+            const r = new FileReader();
+            r.onload = e => {
+                currentBase64 = e.target.result;
+                const img = document.createElement('img'); img.src = currentBase64;
+                document.getElementById('previewBox').innerHTML=''; document.getElementById('previewBox').appendChild(img);
+                img.onload = async () => {
+                    document.getElementById('loader').style.display='block';
+                    extractColor(img, 'colorPicker', 'colorHex');
+                    if(model) {
+                        const p = await model.classify(img);
+                        document.getElementById('ai-msg').innerText = "IA: " + p[0].className.split(',')[0];
+                        const t = p[0].className.toLowerCase();
+                        const sel = document.getElementById('catInput');
+                        if(t.match(/shirt|top|jersey/)) sel.value='top';
+                        if(t.match(/pant|jean|skirt/)) sel.value='bottom';
+                        if(t.match(/shoe|boot|sneaker/)) sel.value='shoes';
+                        if(t.match(/coat|jacket/)) sel.value='coat';
+                    }
+                    document.getElementById('loader').style.display='none';
+                }
+            }
+            r.readAsDataURL(f);
+        });
+
+        function extractColor(img, pickerId, hexId) {
+            const c=document.getElementById('hiddenCanvas'); const ctx=c.getContext('2d');
+            c.width=50;c.height=50; ctx.drawImage(img,0,0,50,50);
+            const d=ctx.getImageData(0,0,50,50).data;
+            let r=0,g=0,b=0,n=0;
+            for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++}
+            const hex = "#"+((1<<24)+(Math.floor(r/n)<<16)+(Math.floor(g/n)<<8)+Math.floor(b/n)).toString(16).slice(1);
+            document.getElementById(pickerId).value=hex; document.getElementById(hexId).value=hex;
+        }
+
+        // GUARDAR NUEVO
+        document.getElementById('btn-save').addEventListener('click', async () => {
+            if(!currentBase64 || !currentUser) return alert("Faltan datos");
+            const item = {
+                uid: currentUser.uid, img: currentBase64,
+                cat: document.getElementById('catInput').value,
+                style: document.getElementById('styleInput').value,
+                season: document.getElementById('seasonInput').value,
+                color: document.getElementById('colorHex').value,
+                desc: document.getElementById('descInput').value || "Prenda",
+                date: Date.now()
+            };
+            try { await addDoc(collection(db, "clothes"), item); alert("Guardado!"); loadData(); } catch(e) { alert("Error: "+e.message); }
+        });
+
+        // CARGAR
+        async function loadData() {
+            if(!currentUser) return;
+            const q = query(collection(db, "clothes"), where("uid", "==", currentUser.uid));
+            const snap = await getDocs(q);
+            wardrobeData = [];
+            snap.forEach(doc => { let d=doc.data(); d.id=doc.id; wardrobeData.push(d); });
+            renderGallery('all'); updateStats();
+        }
+
+        // GALERÍA
+        window.filterGallery = function(cat, btn) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            renderGallery(cat);
+        }
+
+        function renderGallery(filter) {
+            const grid = document.getElementById('galleryGrid'); grid.innerHTML = "";
+            const items = filter==='all' ? wardrobeData : wardrobeData.filter(i => i.cat === filter);
+            if(!items.length) { document.getElementById('emptyMsg').style.display='block'; return; }
+            document.getElementById('emptyMsg').style.display='none';
+
+            items.forEach(i => {
+                const d = document.createElement('div'); d.className='card';
+                d.innerHTML=`
+                    <div class="card-actions">
+                        <button class="btn-icon btn-edit" onclick="openEditModal('${i.id}')">✏️</button>
+                        <button class="btn-icon btn-del" onclick="delItem('${i.id}')">🗑️</button>
+                    </div>
+                    <img src="${i.img}">
+                    <div class="card-info">
+                        <b>${i.desc}</b><br>
+                        <span class="badge">${i.cat}</span> <span class="badge">${i.style}</span>
+                    </div>`;
+                grid.appendChild(d);
+            });
+        }
+
+        window.delItem = async function(id) { if(confirm("¿Borrar?")) { await deleteDoc(doc(db, "clothes", id)); loadData(); } }
+
+        // --- EDICIÓN (NUEVO) ---
+        let currentEditId = null;
+
+        window.openEditModal = function(id) {
+            const item = wardrobeData.find(i => i.id === id);
+            if(!item) return;
+            currentEditId = id;
+            
+            document.getElementById('editCat').value = item.cat;
+            document.getElementById('editStyle').value = item.style;
+            document.getElementById('editSeason').value = item.season;
+            document.getElementById('editColorHex').value = item.color;
+            document.getElementById('editColorPicker').value = item.color;
+            document.getElementById('editDesc').value = item.desc;
+            
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        window.closeEditModal = function() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditId = null;
+        }
+
+        // Sincronizar el color picker del modal con el input de texto
+        document.getElementById('editColorPicker').addEventListener('change', function() {
+            document.getElementById('editColorHex').value = this.value;
+        });
+
+        window.saveEdit = async function() {
+            if(!currentEditId) return;
+            const newData = {
+                cat: document.getElementById('editCat').value,
+                style: document.getElementById('editStyle').value,
+                season: document.getElementById('editSeason').value,
+                color: document.getElementById('editColorHex').value,
+                desc: document.getElementById('editDesc').value
+            };
+            
+            try {
+                await updateDoc(doc(db, "clothes", currentEditId), newData);
+                alert("¡Prenda actualizada!");
+                closeEditModal();
+                loadData();
+            } catch(e) {
+                alert("Error al actualizar: " + e.message);
+            }
+        }
+
+        // OUTFITS
+        window.generateOutfit = function() {
+            const sStyle = document.getElementById('fStyle').value;
+            const sSeason = document.getElementById('fSeason').value;
+            let pool = wardrobeData;
+            if(sStyle !== 'all') pool = pool.filter(i => i.style === sStyle);
+            if(sSeason !== 'all') pool = pool.filter(i => i.season === sSeason);
+            
+            const tops = pool.filter(i => i.cat==='top'||i.cat==='coat');
+            const bots = pool.filter(i => i.cat==='bottom');
+            const shoes = pool.filter(i => i.cat==='shoes');
+            const res = document.getElementById('outfitResult');
+            const shop = document.getElementById('shopSection');
+
+            if(!tops.length || !bots.length || !shoes.length) {
+                shop.style.display='none';
+                res.innerHTML = "<p style='color:red; width:100%; text-align:center;'>Falta ropa.</p>";
+                return;
+            }
+
+            const t = tops[Math.floor(Math.random()*tops.length)];
+            const b = bots[Math.floor(Math.random()*bots.length)];
+            const s = shoes[Math.floor(Math.random()*shoes.length)];
+            res.innerHTML = `
+                <div class="outfit-piece"><img src="${t.img}"><br><small>${t.desc}</small></div>
+                <div class="outfit-piece"><img src="${b.img}"><br><small>${b.desc}</small></div>
+                <div class="outfit-piece"><img src="${s.img}"><br><small>${s.desc}</small></div>
+            `;
+            shop.style.display='block';
+        }
+
+        // STATS
+        function updateStats() {
+            document.getElementById('totalItems').innerText = wardrobeData.length;
+            const mostWornBox = document.getElementById('mostWorn');
+            const vintedCard = document.getElementById('vintedCard');
+            if(wardrobeData.length > 0) {
+                const fav = wardrobeData[0];
+                mostWornBox.innerHTML = `<img src="${fav.img}" style="width:50px; height:50px; object-fit:cover; border-radius:50%;"><div><b>${fav.desc}</b><br><small>Favorita del mes</small></div>`;
+                if(wardrobeData.length >= 3) vintedCard.style.display = 'flex';
+            }
+        }
+
+        window.nav = function(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('nav-'+id).classList.add('active');
+        }
+    </script>
+</body>
+</html>
