@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Closet v9 - Final Híbrida</title>
+    <title>Smart Closet v14 - Full Cycle</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
@@ -12,19 +12,16 @@
         :root { --primary: #6c5ce7; --secondary: #a29bfe; --bg: #dfe6e9; --text: #2d3436; --success: #00b894; --danger: #d63031; --warning: #fdcb6e; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: var(--text); }
 
-        /* --- AUTH SCREEN --- */
+        /* --- AUTH --- */
         #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), #0984e3); display: flex; justify-content: center; align-items: center; z-index: 2000; }
         .auth-box { background: white; padding: 30px; border-radius: 15px; width: 300px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .auth-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .auth-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; }
         .btn-auth { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
         
-        /* --- APP UI --- */
+        /* --- UI --- */
         #app-content { display: none; }
-
         header { background: var(--primary); color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .btn-logout { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
-
-        /* WIDGET CLIMA */
         #weather-widget { background: linear-gradient(to right, #74b9ff, #0984e3); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
 
         nav { display: flex; background: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
@@ -34,65 +31,57 @@
         main { max-width: 900px; margin: 10px auto; padding: 0 15px; }
         .section { display: none; animation: fadeIn 0.4s; }
         .section.active { display: block; }
-        
         .panel { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         
-        /* GRID DE SUBIDA */
+        label { display: block; font-size: 0.8rem; font-weight: bold; color: #636e72; margin: 10px 0 5px; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #dfe6e9; border-radius: 6px; box-sizing: border-box; }
+        .btn-main { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.2s; box-shadow: 0 4px 6px rgba(108, 92, 231, 0.2); }
+        
+        /* UPLOAD & GALLERY */
         .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        @media (max-width: 600px) { .upload-grid { grid-template-columns: 1fr; } }
         .preview-box { background: #f1f2f6; height: 200px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px dashed #b2bec3; overflow: hidden; }
         .preview-box img { width: 100%; height: 100%; object-fit: contain; }
-
-        label { display: block; font-size: 0.8rem; font-weight: bold; color: #636e72; margin: 10px 0 5px; }
-        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #dfe6e9; border-radius: 6px; box-sizing: border-box; }
-        .btn-main { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.2s; box-shadow: 0 4px 6px rgba(108, 92, 231, 0.2); }
-
-        /* GALERÍA */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
+        .card img { width: 100%; height: 160px; object-fit: cover; }
+        .card-info { padding: 12px; }
         .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; }
         .chip { background: white; border: 1px solid #dfe6e9; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
         .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; transition: transform 0.2s; }
-        .card img { width: 100%; height: 160px; object-fit: cover; }
-        .card-info { padding: 12px; }
-        .badge { font-size: 0.7rem; background: #f1f2f6; padding: 3px 8px; border-radius: 4px; color: #636e72; }
+        .price-badge { font-size: 0.8rem; font-weight: bold; color: var(--success); float: right; }
         .card-actions { position: absolute; top: 5px; right: 5px; display: flex; gap: 5px; }
         .btn-icon { background: white; border-radius: 50%; width: 28px; height: 28px; border: none; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
-        
+
         /* OUTFITS */
         .outfit-result { display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         .outfit-piece { width: 30%; min-width: 120px; background: white; padding: 10px; border-radius: 10px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .outfit-piece img { width: 100%; height: 140px; object-fit: cover; border-radius: 6px; margin-bottom: 5px; }
+        /* Botón Guardar Outfit */
+        .btn-save-outfit { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; display: none; animation: fadeIn 0.5s; }
 
-        /* CALENDARIO & EVENTOS */
-        .event-card { border-left: 4px solid var(--primary); background: #f8f9fa; padding: 10px; margin-bottom: 10px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
-        .event-card:hover { background: #eee; transform: translateX(5px); }
+        /* CALENDARIO */
         .ootd-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
-        .calendar-day { aspect-ratio: 1; border: 1px solid #eee; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; background: white; position: relative; }
-        .calendar-day.active { border-color: var(--primary); color: var(--primary); font-weight: bold; }
+        .calendar-day { aspect-ratio: 1; border: 1px solid #eee; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8rem; background: white; position: relative; cursor: pointer; transition: 0.2s; }
+        .calendar-day.active { border-color: var(--primary); color: var(--primary); font-weight: bold; background: #eef2ff; border-width: 2px; }
         .dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; margin-top: 4px; }
-        
-        /* COST PER WEAR & LAUNDRY */
-        .cpw-item { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; padding: 10px 0; }
-        .laundry-bar { height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-top: 5px; }
-        .laundry-fill { height: 100%; background: var(--warning); width: 0%; transition: width 1s; }
+        .btn-sim { background: linear-gradient(45deg, #fdcb6e, #e17055); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 0.8rem; margin-top: 10px; width: 100%; }
 
-        /* RESTAURADO: ESTILOS V7 PARA SHOP Y VINTED */
-        .shop-section { margin-top: 30px; border-top: 2px dashed #b2bec3; padding-top: 20px; }
+        /* SHOP & STATS */
         .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
-        .shop-item { display: flex; align-items: center; gap: 15px; background: #f0fff4; border: 1px solid #b2bec3; padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
-        .shop-item:hover { border-color: var(--success); transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,184,148,0.2); }
+        .shop-item { display: flex; align-items: center; gap: 15px; background: #f0fff4; border: 1px solid #b2bec3; padding: 15px; border-radius: 12px; cursor: pointer; }
         .shop-img { width: 60px; height: 60px; background: #ddd; border-radius: 8px; object-fit: cover; }
-        
-        .vinted-card { background: #fff0f1; border-left: 5px solid var(--danger); padding: 20px; margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(214, 48, 49, 0.1); }
-        .vinted-btn { background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: 0.2s; }
-        .vinted-btn:hover { background: #c0392b; transform: scale(1.05); }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-num { font-size: 1.8rem; font-weight: bold; color: var(--primary); display: block; }
+        .vinted-card { background: #fff0f1; border-left: 5px solid var(--danger); padding: 20px; margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 15px; border-radius: 12px; }
+        .vinted-btn { background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
 
         /* MODAL */
         .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
-        .modal-content { background-color: #fefefe; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; animation: fadeIn 0.3s; }
-        
+        .modal-content { background-color: #fefefe; padding: 25px; border-radius: 12px; width: 95%; max-width: 450px; animation: fadeIn 0.3s; max-height: 90vh; overflow-y: auto; }
+        .ootd-gallery { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+        .ootd-gallery img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s infinite; display: none; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -102,7 +91,7 @@
 
     <div id="auth-screen">
         <div class="auth-box">
-            <h2>👗 Smart Closet v9</h2>
+            <h2>👗 Smart Closet v14</h2>
             <input type="email" id="auth-email" placeholder="Email">
             <input type="password" id="auth-pass" placeholder="Contraseña">
             <button class="btn-auth" id="btn-auth-action">Entrar / Registrarse</button>
@@ -147,7 +136,8 @@
                                 <input type="color" id="colorPicker" style="height:35px;">
                                 <input type="text" id="colorHex" readonly>
                             </div>
-                            <input type="text" id="descInput" placeholder="Descripción...">
+                            <label>Precio (€)</label><input type="number" id="priceInput" placeholder="0.00" step="0.01">
+                            <label>Descripción</label><input type="text" id="descInput" placeholder="Ej. Vaqueros azules...">
                             <button class="btn-main" id="btn-save">Guardar</button>
                         </div>
                     </div>
@@ -173,19 +163,16 @@
                         <select id="fSeason"><option value="all">Toda Temporada</option><option value="verano">Verano</option><option value="invierno">Invierno</option></select>
                     </div>
                     <button class="btn-main" onclick="generateOutfit()">🎲 Generar</button>
+                    
                     <div id="outfitResult" class="outfit-result"></div>
                     
+                    <button id="btn-save-outfit" class="btn-save-outfit" onclick="saveOutfitToCalendar()">💾 Guardar en Calendario (Hoy)</button>
+
                     <div id="shopSection" class="shop-section" style="display:none;">
-                        <h4>🛍️ Completa el look (Recomendado)</h4>
+                        <h4>🛍️ Completa el look</h4>
                         <div class="shop-grid">
-                            <div class="shop-item" onclick="alert('Redirigiendo a Amazon...')">
-                                <img src="https://via.placeholder.com/60?text=Bolso" class="shop-img">
-                                <div><b>Bolso Cuero</b><br><span style="color:green; font-weight:bold;">29.99€</span></div>
-                            </div>
-                            <div class="shop-item" onclick="alert('Redirigiendo a Zara...')">
-                                <img src="https://via.placeholder.com/60?text=Cinto" class="shop-img">
-                                <div><b>Cinturón</b><br><span style="color:green; font-weight:bold;">15.50€</span></div>
-                            </div>
+                            <div class="shop-item" onclick="alert('Redirigiendo a Amazon...')"><img src="https://via.placeholder.com/60?text=Bolso" class="shop-img"><div><b>Bolso Cuero</b><br><span style="color:green; font-weight:bold;">29.99€</span></div></div>
+                            <div class="shop-item" onclick="alert('Redirigiendo a Zara...')"><img src="https://via.placeholder.com/60?text=Cinto" class="shop-img"><div><b>Cinturón</b><br><span style="color:green; font-weight:bold;">15.50€</span></div></div>
                         </div>
                     </div>
                 </div>
@@ -193,53 +180,31 @@
 
             <div id="agenda" class="section">
                 <div class="panel">
-                    <h3>📅 Google Calendar (Simulado)</h3>
-                    <p style="font-size:0.8rem; color:#666;">Próximos eventos sincronizados:</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>📅 Agenda</h3>
+                        <button class="btn-sim" onclick="simulateNextDay()">⏩ Avanzar Día</button>
+                    </div>
+                    <p style="font-size:0.8rem; color:#666;" id="ootd-status">Hoy es día 14.</p>
                     
-                    <div class="event-card" onclick="alert('💡 Recomendación: Camisa blanca y pantalón chino.')">
-                        <b>10:00 - Reunión Zoom</b><br><small>Estilo sugerido: Elegante/Oficina</small>
-                    </div>
-                    <div class="event-card" style="border-color: #fdcb6e;" onclick="alert('💡 Recomendación: Ropa cómoda y transpirable.')">
-                        <b>18:30 - Gimnasio</b><br><small>Estilo sugerido: Sport</small>
-                    </div>
-                    <div class="event-card" style="border-color: #d63031;" onclick="alert('💡 Recomendación: Vestido o conjunto chic.')">
-                        <b>21:00 - Cena Cita</b><br><small>Estilo sugerido: Elegante/Noche</small>
-                    </div>
-
-                    <h3 style="margin-top:30px;">📸 OOTD Calendar</h3>
-                    <div class="ootd-grid">
-                        <div class="calendar-day">L</div><div class="calendar-day">M</div><div class="calendar-day">X</div><div class="calendar-day">J</div><div class="calendar-day">V</div><div class="calendar-day">S</div><div class="calendar-day">D</div>
-                        <div class="calendar-day">1</div><div class="calendar-day">2<div class="dot"></div></div><div class="calendar-day">3</div><div class="calendar-day active">4</div><div class="calendar-day">5</div><div class="calendar-day">6</div><div class="calendar-day">7</div>
+                    <div class="ootd-grid" id="ootdGrid"></div>
+                    
+                    <div style="margin-top:20px;">
+                        <div class="event-card" onclick="alert('💡 Recomendación: Camisa blanca.')"><b>10:00 - Reunión</b><br><small>Oficina</small></div>
+                        <div class="event-card" style="border-color: #fdcb6e;" onclick="alert('💡 Recomendación: Ropa cómoda.')"><b>18:30 - Gym</b><br><small>Sport</small></div>
                     </div>
                 </div>
             </div>
 
             <div id="stats" class="section">
                 <div class="panel">
-                    <h2>📊 Métricas de Armario</h2>
+                    <h2>📊 Métricas</h2>
                     <div class="stats-grid">
                         <div class="stat-box"><span class="stat-num" id="totalItems">0</span><small>Prendas</small></div>
-                        <div class="stat-box"><span class="stat-num" style="color:var(--success)">1.2€</span><small>Coste medio/uso</small></div>
+                        <div class="stat-box"><span class="stat-num" id="totalValue" style="color:var(--success)">0€</span><small>Valor Total</small></div>
                     </div>
-
-                    <div style="margin-top:20px;">
-                        <h4 style="margin-bottom:5px;">🧺 Cesto de Ropa Sucia</h4>
-                        <div style="display:flex; justify-content:space-between; font-size:0.8rem;"><span>Limpio</span><span>Sucio (25%)</span></div>
-                        <div class="laundry-bar"><div class="laundry-fill" style="width:25%;"></div></div>
-                        <p style="font-size:0.8rem; color:#666; margin-top:5px;">3 prendas necesitan lavado.</p>
-                    </div>
-
-                    <h4 style="margin-top:30px;">💰 Coste por Uso (Top Rentables)</h4>
-                    <div id="cpw-list">
-                        <p style="color:#777; font-size:0.9rem;">Sube ropa para calcular.</p>
-                    </div>
-
                     <div class="vinted-card" id="vintedCard" style="display:none;">
-                        <div>
-                            <b style="font-size:1.1rem;">⚠️ Oportunidad de Venta</b>
-                            <p style="margin:5px 0; font-size:0.9rem; color:#555;">No te pones esto hace 6 meses.</p>
-                        </div>
-                        <button class="vinted-btn" onclick="alert('Conectando API Vinted...')">Vender</button>
+                        <div><b style="font-size:1.1rem;">⚠️ Oportunidad de Venta</b><p style="margin:5px 0; font-size:0.9rem; color:#555;">No te pones esto hace 6 meses.</p></div>
+                        <button class="vinted-btn">Vender</button>
                     </div>
                 </div>
             </div>
@@ -249,10 +214,23 @@
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span style="float:right; cursor:pointer; font-size:1.5rem;" onclick="closeEditModal()">×</span>
-            <h2>✏️ Editar</h2>
-            <select id="editCat"><option value="top">Top</option><option value="bottom">Abajo</option><option value="shoes">Calzado</option></select>
-            <input type="text" id="editDesc">
-            <button class="btn-main" onclick="saveEdit()">Guardar</button>
+            <h2>✏️ Editar Prenda</h2>
+            <label>Categoría</label>
+            <select id="editCat"><option value="top">Top</option><option value="bottom">Abajo</option><option value="shoes">Calzado</option><option value="coat">Abrigo</option></select>
+            <div style="display:flex; gap:10px;"><div style="flex:1"><label>Estilo</label><select id="editStyle"><option value="casual">Casual</option><option value="elegante">Elegante</option><option value="urbano">Urbano</option></select></div><div style="flex:1"><label>Temporada</label><select id="editSeason"><option value="verano">Verano</option><option value="invierno">Invierno</option></select></div></div>
+            <label>Color</label><div style="display:flex; gap:5px;"><input type="color" id="editColorPicker" style="height:35px;"><input type="text" id="editColorHex" readonly></div>
+            <label>Precio (€)</label><input type="number" id="editPrice" step="0.01">
+            <label>Descripción</label><input type="text" id="editDesc">
+            <button class="btn-main" onclick="saveEdit()">💾 Guardar Cambios</button>
+        </div>
+    </div>
+
+    <div id="ootdModal" class="modal">
+        <div class="modal-content">
+            <span style="float:right; cursor:pointer; font-size:1.5rem;" onclick="closeOotdModal()">×</span>
+            <h2 id="ootdDateTitle">📅 Outfit del Día</h2>
+            <div id="ootdContent" style="text-align:center;"></div>
+            <button class="btn-main" style="background:#555; margin-top:10px;" onclick="closeOotdModal()">Cerrar</button>
         </div>
     </div>
 
@@ -311,6 +289,7 @@
                     document.getElementById('app-content').style.display='block';
                     loadData();
                     initWeather(); 
+                    initCalendar(); 
                 } else {
                     currentUser = null;
                     document.getElementById('auth-screen').style.display='flex';
@@ -332,7 +311,7 @@
                 document.getElementById('previewBox').innerHTML=''; document.getElementById('previewBox').appendChild(img);
                 img.onload = async () => {
                     document.getElementById('loader').style.display='block';
-                    extractColor(img);
+                    extractColor(img, 'colorPicker', 'colorHex');
                     if(model) {
                         const p = await model.classify(img);
                         document.getElementById('ai-msg').innerText = "IA: " + p[0].className.split(',')[0];
@@ -341,7 +320,7 @@
                         if(t.match(/shirt|top|jersey/)) sel.value='top';
                         if(t.match(/pant|jean/)) sel.value='bottom';
                         if(t.match(/shoe|sneaker/)) sel.value='shoes';
-                        if(t.match(/coat|jacket/)) sel.value='coat';
+                        if(t.match(/coat/)) sel.value='coat';
                     }
                     document.getElementById('loader').style.display='none';
                 }
@@ -349,14 +328,14 @@
             r.readAsDataURL(f);
         });
 
-        function extractColor(img) {
+        function extractColor(img, pId, hId) {
             const c=document.getElementById('hiddenCanvas'); const ctx=c.getContext('2d');
             c.width=50;c.height=50; ctx.drawImage(img,0,0,50,50);
             const d=ctx.getImageData(0,0,50,50).data;
             let r=0,g=0,b=0,n=0;
             for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++}
             const hex = "#"+((1<<24)+(Math.floor(r/n)<<16)+(Math.floor(g/n)<<8)+Math.floor(b/n)).toString(16).slice(1);
-            document.getElementById('colorPicker').value=hex; document.getElementById('colorHex').value=hex;
+            document.getElementById(pId).value=hex; document.getElementById(hId).value=hex;
         }
 
         // SAVE
@@ -369,6 +348,7 @@
                 season: document.getElementById('seasonInput').value,
                 color: document.getElementById('colorHex').value,
                 desc: document.getElementById('descInput').value || "Prenda",
+                price: document.getElementById('priceInput').value || 0,
                 date: Date.now()
             };
             try { await addDoc(collection(db, "clothes"), item); alert("Guardado!"); loadData(); } catch(e) { alert(e.message); }
@@ -401,7 +381,7 @@
                 d.innerHTML=`
                     <div class="card-actions"><button class="btn-icon" style="color:blue" onclick="openEdit('${i.id}')">✏️</button><button class="btn-icon" style="color:red" onclick="delItem('${i.id}')">🗑️</button></div>
                     <img src="${i.img}">
-                    <div class="card-info"><b>${i.desc}</b><br><span class="badge">${i.cat}</span></div>`;
+                    <div class="card-info"><span class="price-badge">${i.price}€</span><b>${i.desc}</b><br><span class="badge">${i.cat}</span></div>`;
                 grid.appendChild(d);
             });
         }
@@ -411,24 +391,35 @@
         // EDIT
         let editId = null;
         window.openEdit = function(id) {
-            const i = wardrobeData.find(x => x.id === id);
-            if(!i) return;
+            const i = wardrobeData.find(x => x.id === id); if(!i) return;
             editId = id;
             document.getElementById('editCat').value = i.cat;
+            document.getElementById('editStyle').value = i.style || 'casual';
+            document.getElementById('editSeason').value = i.season || 'verano';
             document.getElementById('editDesc').value = i.desc;
+            document.getElementById('editPrice').value = i.price || 0;
+            document.getElementById('editColorHex').value = i.color || '#000000';
+            document.getElementById('editColorPicker').value = i.color || '#000000';
             document.getElementById('editModal').style.display = 'flex';
         }
+        document.getElementById('editColorPicker').addEventListener('change', function(){document.getElementById('editColorHex').value = this.value;});
         window.closeEditModal = function() { document.getElementById('editModal').style.display = 'none'; }
         window.saveEdit = async function() {
             if(!editId) return;
             await updateDoc(doc(db, "clothes", editId), {
                 cat: document.getElementById('editCat').value,
-                desc: document.getElementById('editDesc').value
+                style: document.getElementById('editStyle').value,
+                season: document.getElementById('editSeason').value,
+                color: document.getElementById('editColorHex').value,
+                desc: document.getElementById('editDesc').value,
+                price: document.getElementById('editPrice').value
             });
             closeEditModal(); loadData();
         }
 
-        // OUTFIT
+        // --- OUTFIT & CALENDAR INTEGRATION (V14) ---
+        let currentGeneratedOutfit = null; // Store current generated items
+
         window.generateOutfit = function() {
             const s = document.getElementById('fStyle').value;
             let pool = s==='all' ? wardrobeData : wardrobeData.filter(i=>i.style===s);
@@ -438,60 +429,111 @@
             
             const res = document.getElementById('outfitResult');
             const shop = document.getElementById('shopSection');
-            
-            if(!t.length || !b.length || !sh.length) { res.innerHTML="Falta ropa"; shop.style.display='none'; return; }
+            const saveBtn = document.getElementById('btn-save-outfit');
+
+            if(!t.length || !b.length || !sh.length) { 
+                res.innerHTML="Falta ropa"; shop.style.display='none'; saveBtn.style.display='none'; return; 
+            }
             
             const rT = t[Math.floor(Math.random()*t.length)];
             const rB = b[Math.floor(Math.random()*b.length)];
             const rS = sh[Math.floor(Math.random()*sh.length)];
             
+            // Guardamos referencia
+            currentGeneratedOutfit = [rT, rB, rS];
+
             res.innerHTML = `<div class="outfit-piece"><img src="${rT.img}"><small>${rT.desc}</small></div>
                              <div class="outfit-piece"><img src="${rB.img}"><small>${rB.desc}</small></div>
                              <div class="outfit-piece"><img src="${rS.img}"><small>${rS.desc}</small></div>`;
             shop.style.display='block';
+            saveBtn.style.display='block'; // Mostrar botón guardar
         }
 
-        // --- FUNCIONES V8: CLIMA & STATS ---
+        // --- SIMULADOR DE DÍAS (V14) ---
+        let currentSimDay = 14;
+        let recordedDays = [2, 4, 8, 12]; 
+        let ootdHistory = {}; // Store real clothes for days
+
+        window.saveOutfitToCalendar = function() {
+            if(!currentGeneratedOutfit) return;
+            
+            // Guardar en el día actual
+            ootdHistory[currentSimDay] = currentGeneratedOutfit;
+            if(!recordedDays.includes(currentSimDay)) recordedDays.push(currentSimDay);
+            
+            alert(`¡Outfit guardado para el día ${currentSimDay}!`);
+            initCalendar();
+        }
+
+        window.simulateNextDay = function() {
+            currentSimDay++;
+            if(currentSimDay > 28) currentSimDay = 1; 
+            document.getElementById('ootd-status').innerText = `Hoy es día ${currentSimDay}.`;
+            initCalendar(); 
+        }
+
+        function initCalendar() {
+            const grid = document.getElementById('ootdGrid');
+            grid.innerHTML = "";
+            const days = ['L','M','X','J','V','S','D'];
+            days.forEach(d => grid.innerHTML += `<div class="calendar-day" style="background:transparent;border:none;font-weight:bold;">${d}</div>`);
+
+            for(let i=1; i<=28; i++) {
+                const hasLook = recordedDays.includes(i);
+                let dot = hasLook ? `<div class="dot"></div>` : '';
+                let active = i === currentSimDay ? 'active' : '';
+                
+                let html = `<div class="calendar-day ${active}" onclick="clickDay(${i}, ${hasLook})">${i} ${dot}</div>`;
+                grid.innerHTML += html;
+            }
+        }
+
+        window.clickDay = function(day, hasLook) {
+            if(hasLook) {
+                document.getElementById('ootdDateTitle').innerText = `📅 Outfit del Día ${day}`;
+                const content = document.getElementById('ootdContent');
+                content.innerHTML = "";
+
+                // Si tenemos datos reales guardados (V14)
+                if(ootdHistory[day]) {
+                    const items = ootdHistory[day];
+                    content.innerHTML = `<div class="ootd-gallery">
+                        <img src="${items[0].img}">
+                        <img src="${items[1].img}">
+                        <img src="${items[2].img}">
+                    </div><p style="margin-top:10px"><b>Look Guardado</b></p>`;
+                } 
+                // Fallback para días simulados antiguos
+                else if (wardrobeData.length > 0) {
+                    const r = wardrobeData[Math.floor(Math.random()*wardrobeData.length)];
+                    content.innerHTML = `<img src="${r.img}" class="ootd-preview-img"><p>Prenda aleatoria del historial.</p>`;
+                } else {
+                    content.innerHTML = "<p>No hay ropa subida.</p>";
+                }
+                
+                document.getElementById('ootdModal').style.display = 'flex';
+            } else if (day === currentSimDay) {
+                alert("Ve a la sección 'Outfits' para generar y guardar el look de hoy.");
+            }
+        }
+
+        window.closeOotdModal = function() { document.getElementById('ootdModal').style.display='none'; }
+
+        // STATS & WEATHER
         function initWeather() {
-            const w = [
-                { i: "☀️", t: "28°C", d: "Soleado", tip: "Usa gafas de sol" },
-                { i: "🌧️", t: "14°C", d: "Lluvia", tip: "Lleva paraguas" },
-                { i: "☁️", t: "19°C", d: "Nublado", tip: "Ideal para casual" }
-            ];
+            const w = [ { i: "☀️", t: "28°C", d: "Soleado", tip: "Usa gafas" }, { i: "🌧️", t: "14°C", d: "Lluvia", tip: "Lleva paraguas" } ];
             const rand = w[Math.floor(Math.random()*w.length)];
-            document.getElementById('weather-widget').innerHTML = `
-                <div style="display:flex; gap:10px; align-items:center;"><span style="font-size:1.5rem">${rand.i}</span><div><b>Madrid</b><br>${rand.d} · ${rand.t}</div></div>
-                <div style="text-align:right"><small>Tip IA:</small><br><b>${rand.tip}</b></div>
-            `;
+            document.getElementById('weather-widget').innerHTML = `<div style="display:flex; gap:10px; align-items:center;"><span style="font-size:1.5rem">${rand.i}</span><div><b>Madrid</b><br>${rand.d} · ${rand.t}</div></div><div style="text-align:right"><small>Tip IA:</small><br><b>${rand.tip}</b></div>`;
         }
 
         function updateStats() {
             document.getElementById('totalItems').innerText = wardrobeData.length;
-            const vinted = document.getElementById('vintedCard');
-            const cpwList = document.getElementById('cpw-list');
+            let totalVal = 0;
+            wardrobeData.forEach(i => totalVal += parseFloat(i.price || 0));
+            document.getElementById('totalValue').innerText = totalVal.toFixed(2) + '€';
             
             if(wardrobeData.length > 0) {
-                // LÓGICA VINTED
-                if(wardrobeData.length >= 3) vinted.style.display = 'flex';
-                
-                // LÓGICA CPW
-                cpwList.innerHTML = "";
-                wardrobeData.slice(0, 3).forEach(i => {
-                    const price = Math.floor(Math.random() * 50) + 10;
-                    const uses = Math.floor(Math.random() * 20) + 1;
-                    const cpw = (price / uses).toFixed(2);
-                    cpwList.innerHTML += `
-                        <div class="cpw-item">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <img src="${i.img}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;">
-                                <div><b>${i.desc}</b><br><small>${uses} usos</small></div>
-                            </div>
-                            <div style="text-align:right;"><b>${cpw}€</b><br><small>/uso</small></div>
-                        </div>
-                    `;
-                });
-            } else {
-                cpwList.innerHTML = "<p>Sube ropa para calcular.</p>";
+                if(wardrobeData.length >= 3) document.getElementById('vintedCard').style.display = 'flex';
             }
         }
 
