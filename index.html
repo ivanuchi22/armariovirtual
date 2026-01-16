@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Closet v8 - Life OS</title>
+    <title>Smart Closet v9 - Final Híbrida</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
@@ -24,11 +24,11 @@
         header { background: var(--primary); color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .btn-logout { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
 
-        /* WEATHER WIDGET */
+        /* WIDGET CLIMA */
         #weather-widget { background: linear-gradient(to right, #74b9ff, #0984e3); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
 
         nav { display: flex; background: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
-        nav button { flex: 1; min-width: 60px; border: none; background: none; padding: 12px 5px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; color: #b2bec3; transition: 0.3s; font-size: 0.8rem; display: flex; flex-direction: column; align-items: center; gap: 4px;}
+        nav button { flex: 1; min-width: 65px; border: none; background: none; padding: 10px 5px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; color: #b2bec3; transition: 0.3s; font-size: 0.8rem; display: flex; flex-direction: column; align-items: center; gap: 4px;}
         nav button.active { color: var(--primary); border-bottom-color: var(--primary); background: #f8f9fa; }
 
         main { max-width: 900px; margin: 10px auto; padding: 0 15px; }
@@ -65,7 +65,6 @@
         .outfit-piece { width: 30%; min-width: 120px; background: white; padding: 10px; border-radius: 10px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .outfit-piece img { width: 100%; height: 140px; object-fit: cover; border-radius: 6px; margin-bottom: 5px; }
 
-        /* NUEVOS ESTILOS V8 */
         /* CALENDARIO & EVENTOS */
         .event-card { border-left: 4px solid var(--primary); background: #f8f9fa; padding: 10px; margin-bottom: 10px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
         .event-card:hover { background: #eee; transform: translateX(5px); }
@@ -78,6 +77,17 @@
         .cpw-item { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; padding: 10px 0; }
         .laundry-bar { height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-top: 5px; }
         .laundry-fill { height: 100%; background: var(--warning); width: 0%; transition: width 1s; }
+
+        /* RESTAURADO: ESTILOS V7 PARA SHOP Y VINTED */
+        .shop-section { margin-top: 30px; border-top: 2px dashed #b2bec3; padding-top: 20px; }
+        .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
+        .shop-item { display: flex; align-items: center; gap: 15px; background: #f0fff4; border: 1px solid #b2bec3; padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .shop-item:hover { border-color: var(--success); transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,184,148,0.2); }
+        .shop-img { width: 60px; height: 60px; background: #ddd; border-radius: 8px; object-fit: cover; }
+        
+        .vinted-card { background: #fff0f1; border-left: 5px solid var(--danger); padding: 20px; margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(214, 48, 49, 0.1); }
+        .vinted-btn { background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: 0.2s; }
+        .vinted-btn:hover { background: #c0392b; transform: scale(1.05); }
 
         /* MODAL */
         .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
@@ -92,7 +102,7 @@
 
     <div id="auth-screen">
         <div class="auth-box">
-            <h2>👗 Smart Closet v8</h2>
+            <h2>👗 Smart Closet v9</h2>
             <input type="email" id="auth-email" placeholder="Email">
             <input type="password" id="auth-pass" placeholder="Contraseña">
             <button class="btn-auth" id="btn-auth-action">Entrar / Registrarse</button>
@@ -106,8 +116,7 @@
             <button class="btn-logout" id="btn-logout">Salir</button>
         </header>
         
-        <div id="weather-widget">
-            </div>
+        <div id="weather-widget"></div>
 
         <nav>
             <button onclick="nav('upload')" class="active" id="nav-upload">➕<br>Subir</button>
@@ -167,10 +176,16 @@
                     <div id="outfitResult" class="outfit-result"></div>
                     
                     <div id="shopSection" class="shop-section" style="display:none;">
-                        <h4>🛍️ Completa el look</h4>
+                        <h4>🛍️ Completa el look (Recomendado)</h4>
                         <div class="shop-grid">
-                            <div class="shop-item" onclick="alert('Ir a Amazon...')"><div class="shop-img" style="background:#555"></div><div><b>Bolso</b><br><span style="color:green">29€</span></div></div>
-                            <div class="shop-item" onclick="alert('Ir a Zara...')"><div class="shop-img" style="background:#888"></div><div><b>Cinturón</b><br><span style="color:green">15€</span></div></div>
+                            <div class="shop-item" onclick="alert('Redirigiendo a Amazon...')">
+                                <img src="https://via.placeholder.com/60?text=Bolso" class="shop-img">
+                                <div><b>Bolso Cuero</b><br><span style="color:green; font-weight:bold;">29.99€</span></div>
+                            </div>
+                            <div class="shop-item" onclick="alert('Redirigiendo a Zara...')">
+                                <img src="https://via.placeholder.com/60?text=Cinto" class="shop-img">
+                                <div><b>Cinturón</b><br><span style="color:green; font-weight:bold;">15.50€</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -192,7 +207,6 @@
                     </div>
 
                     <h3 style="margin-top:30px;">📸 OOTD Calendar</h3>
-                    <p style="font-size:0.8rem;">Registro de tus outfits diarios:</p>
                     <div class="ootd-grid">
                         <div class="calendar-day">L</div><div class="calendar-day">M</div><div class="calendar-day">X</div><div class="calendar-day">J</div><div class="calendar-day">V</div><div class="calendar-day">S</div><div class="calendar-day">D</div>
                         <div class="calendar-day">1</div><div class="calendar-day">2<div class="dot"></div></div><div class="calendar-day">3</div><div class="calendar-day active">4</div><div class="calendar-day">5</div><div class="calendar-day">6</div><div class="calendar-day">7</div>
@@ -217,12 +231,15 @@
 
                     <h4 style="margin-top:30px;">💰 Coste por Uso (Top Rentables)</h4>
                     <div id="cpw-list">
-                        <p style="color:#777; font-size:0.9rem;">Sube ropa para calcular rentabilidad.</p>
+                        <p style="color:#777; font-size:0.9rem;">Sube ropa para calcular.</p>
                     </div>
 
                     <div class="vinted-card" id="vintedCard" style="display:none;">
-                        <div><b>⚠️ Vender en Vinted</b><p style="margin:5px 0; font-size:0.9rem;">Sin uso hace 6 meses.</p></div>
-                        <button class="vinted-btn">Vender</button>
+                        <div>
+                            <b style="font-size:1.1rem;">⚠️ Oportunidad de Venta</b>
+                            <p style="margin:5px 0; font-size:0.9rem; color:#555;">No te pones esto hace 6 meses.</p>
+                        </div>
+                        <button class="vinted-btn" onclick="alert('Conectando API Vinted...')">Vender</button>
                     </div>
                 </div>
             </div>
@@ -293,7 +310,7 @@
                     document.getElementById('auth-screen').style.display='none';
                     document.getElementById('app-content').style.display='block';
                     loadData();
-                    initWeather(); // Cargar clima
+                    initWeather(); 
                 } else {
                     currentUser = null;
                     document.getElementById('auth-screen').style.display='flex';
@@ -434,8 +451,7 @@
             shop.style.display='block';
         }
 
-        // --- NUEVAS FUNCIONES SIMULADAS (CLIMA & CPW) ---
-        
+        // --- FUNCIONES V8: CLIMA & STATS ---
         function initWeather() {
             const w = [
                 { i: "☀️", t: "28°C", d: "Soleado", tip: "Usa gafas de sol" },
@@ -455,11 +471,11 @@
             const cpwList = document.getElementById('cpw-list');
             
             if(wardrobeData.length > 0) {
+                // LÓGICA VINTED
                 if(wardrobeData.length >= 3) vinted.style.display = 'flex';
                 
-                // SIMULAR COSTE POR USO
+                // LÓGICA CPW
                 cpwList.innerHTML = "";
-                // Cogemos 3 prendas random y les inventamos precio
                 wardrobeData.slice(0, 3).forEach(i => {
                     const price = Math.floor(Math.random() * 50) + 10;
                     const uses = Math.floor(Math.random() * 20) + 1;
