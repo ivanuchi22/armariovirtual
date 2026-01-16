@@ -3,84 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Closet v14 - Full Cycle</title>
+    <title>Smart Closet v16 - Laundry Flow</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 
     <style>
-        :root { --primary: #6c5ce7; --secondary: #a29bfe; --bg: #dfe6e9; --text: #2d3436; --success: #00b894; --danger: #d63031; --warning: #fdcb6e; }
+        :root { --primary: #6c5ce7; --secondary: #a29bfe; --bg: #dfe6e9; --text: #2d3436; --success: #00b894; --danger: #d63031; --warning: #fdcb6e; --laundry: #e17055; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: var(--text); }
 
-        /* --- AUTH --- */
+        /* --- AUTH SCREEN --- */
         #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), #0984e3); display: flex; justify-content: center; align-items: center; z-index: 2000; }
         .auth-box { background: white; padding: 30px; border-radius: 15px; width: 300px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .auth-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; }
+        .auth-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         .btn-auth { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
         
-        /* --- UI --- */
+        /* --- APP UI --- */
         #app-content { display: none; }
+
         header { background: var(--primary); color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .btn-logout { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
+
+        /* WIDGET CLIMA */
         #weather-widget { background: linear-gradient(to right, #74b9ff, #0984e3); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
 
         nav { display: flex; background: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
-        nav button { flex: 1; min-width: 65px; border: none; background: none; padding: 10px 5px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; color: #b2bec3; transition: 0.3s; font-size: 0.8rem; display: flex; flex-direction: column; align-items: center; gap: 4px;}
+        nav button { flex: 1; min-width: 60px; border: none; background: none; padding: 10px 2px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; color: #b2bec3; transition: 0.3s; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 4px;}
         nav button.active { color: var(--primary); border-bottom-color: var(--primary); background: #f8f9fa; }
 
         main { max-width: 900px; margin: 10px auto; padding: 0 15px; }
         .section { display: none; animation: fadeIn 0.4s; }
         .section.active { display: block; }
+        
         .panel { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         
+        /* GENERAL INPUTS */
         label { display: block; font-size: 0.8rem; font-weight: bold; color: #636e72; margin: 10px 0 5px; }
         input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #dfe6e9; border-radius: 6px; box-sizing: border-box; }
         .btn-main { background: var(--primary); color: white; width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.2s; box-shadow: 0 4px 6px rgba(108, 92, 231, 0.2); }
-        
-        /* UPLOAD & GALLERY */
+
+        /* UPLOAD */
         .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .preview-box { background: #f1f2f6; height: 200px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px dashed #b2bec3; overflow: hidden; }
         .preview-box img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* GALERÍA */
+        .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; }
+        .chip { background: white; border: 1px solid #dfe6e9; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
         .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
         .card img { width: 100%; height: 160px; object-fit: cover; }
         .card-info { padding: 12px; }
-        .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; }
-        .chip { background: white; border: 1px solid #dfe6e9; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
-        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
         .price-badge { font-size: 0.8rem; font-weight: bold; color: var(--success); float: right; }
         .card-actions { position: absolute; top: 5px; right: 5px; display: flex; gap: 5px; }
         .btn-icon { background: white; border-radius: 50%; width: 28px; height: 28px; border: none; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+        
+        /* BOTÓN DE LAVADO (NUEVO) */
+        .btn-wash { background: var(--success); color: white; border: none; padding: 8px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin-top: 8px; font-weight: bold; transition: 0.2s; }
+        .btn-wash:hover { background: #00b894; transform: scale(1.02); }
 
         /* OUTFITS */
         .outfit-result { display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         .outfit-piece { width: 30%; min-width: 120px; background: white; padding: 10px; border-radius: 10px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .outfit-piece img { width: 100%; height: 140px; object-fit: cover; border-radius: 6px; margin-bottom: 5px; }
-        /* Botón Guardar Outfit */
         .btn-save-outfit { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; display: none; animation: fadeIn 0.5s; }
 
-        /* CALENDARIO */
+        /* CALENDARIO & OOTD */
         .ootd-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
         .calendar-day { aspect-ratio: 1; border: 1px solid #eee; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8rem; background: white; position: relative; cursor: pointer; transition: 0.2s; }
+        .calendar-day:hover { background: #f0f9ff; }
         .calendar-day.active { border-color: var(--primary); color: var(--primary); font-weight: bold; background: #eef2ff; border-width: 2px; }
         .dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; margin-top: 4px; }
-        .btn-sim { background: linear-gradient(45deg, #fdcb6e, #e17055); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 0.8rem; margin-top: 10px; width: 100%; }
+        .btn-sim { background: linear-gradient(45deg, #fdcb6e, #e17055); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 0.8rem; margin-top: 10px; width: 100%; box-shadow: 0 3px 5px rgba(0,0,0,0.1); }
+        .btn-sim:hover { transform: scale(1.02); }
 
-        /* SHOP & STATS */
-        .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
-        .shop-item { display: flex; align-items: center; gap: 15px; background: #f0fff4; border: 1px solid #b2bec3; padding: 15px; border-radius: 12px; cursor: pointer; }
-        .shop-img { width: 60px; height: 60px; background: #ddd; border-radius: 8px; object-fit: cover; }
+        /* STATS & SHOP */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .stat-box { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
         .stat-num { font-size: 1.8rem; font-weight: bold; color: var(--primary); display: block; }
-        .vinted-card { background: #fff0f1; border-left: 5px solid var(--danger); padding: 20px; margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 15px; border-radius: 12px; }
-        .vinted-btn { background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
+        .laundry-bar { height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-top: 5px; }
+        .laundry-fill { height: 100%; background: var(--warning); width: 0%; transition: width 1s; }
+        
+        .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
+        .shop-item { display: flex; align-items: center; gap: 15px; background: #f0fff4; border: 1px solid #b2bec3; padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .shop-item:hover { border-color: var(--success); transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,184,148,0.2); }
+        .shop-img { width: 60px; height: 60px; background: #ddd; border-radius: 8px; object-fit: cover; }
+        
+        .vinted-card { background: #fff0f1; border-left: 5px solid var(--danger); padding: 20px; margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(214, 48, 49, 0.1); }
+        .vinted-btn { background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: 0.2s; }
+        .vinted-btn:hover { background: #c0392b; transform: scale(1.05); }
 
         /* MODAL */
         .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
         .modal-content { background-color: #fefefe; padding: 25px; border-radius: 12px; width: 95%; max-width: 450px; animation: fadeIn 0.3s; max-height: 90vh; overflow-y: auto; }
         .ootd-gallery { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
         .ootd-gallery img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
+        .ootd-preview-img { width: 100%; height: 250px; object-fit: cover; border-radius: 8px; margin-top: 10px; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s infinite; display: none; margin: 10px auto; }
@@ -91,7 +110,7 @@
 
     <div id="auth-screen">
         <div class="auth-box">
-            <h2>👗 Smart Closet v14</h2>
+            <h2>👗 Smart Closet v16</h2>
             <input type="email" id="auth-email" placeholder="Email">
             <input type="password" id="auth-pass" placeholder="Contraseña">
             <button class="btn-auth" id="btn-auth-action">Entrar / Registrarse</button>
@@ -110,6 +129,7 @@
         <nav>
             <button onclick="nav('upload')" class="active" id="nav-upload">➕<br>Subir</button>
             <button onclick="nav('gallery')" id="nav-gallery">👗<br>Armario</button>
+            <button onclick="nav('laundry')" id="nav-laundry">🧺<br>Sucia</button>
             <button onclick="nav('outfit')" id="nav-outfit">✨<br>Outfits</button>
             <button onclick="nav('agenda')" id="nav-agenda">📅<br>Agenda</button>
             <button onclick="nav('stats')" id="nav-stats">📊<br>Datos</button>
@@ -155,6 +175,15 @@
                 <p id="emptyMsg" style="text-align:center; display:none; color:#777">Vacío</p>
             </div>
 
+            <div id="laundry" class="section">
+                <div class="panel">
+                    <h2>🧺 Ropa en proceso de lavado</h2>
+                    <p style="font-size:0.9rem; color:#666; margin-bottom:20px;">Pulsa el botón cuando la ropa esté limpia y planchada.</p>
+                    <div id="laundryGrid" class="gallery-grid"></div>
+                    <p id="emptyLaundry" style="text-align:center; display:none; color:#777">¡Genial! No tienes ropa sucia.</p>
+                </div>
+            </div>
+
             <div id="outfit" class="section">
                 <div class="panel">
                     <h2>Generador de Estilo</h2>
@@ -169,7 +198,7 @@
                     <button id="btn-save-outfit" class="btn-save-outfit" onclick="saveOutfitToCalendar()">💾 Guardar en Calendario (Hoy)</button>
 
                     <div id="shopSection" class="shop-section" style="display:none;">
-                        <h4>🛍️ Completa el look</h4>
+                        <h4>🛍️ Completa el look (Recomendado)</h4>
                         <div class="shop-grid">
                             <div class="shop-item" onclick="alert('Redirigiendo a Amazon...')"><img src="https://via.placeholder.com/60?text=Bolso" class="shop-img"><div><b>Bolso Cuero</b><br><span style="color:green; font-weight:bold;">29.99€</span></div></div>
                             <div class="shop-item" onclick="alert('Redirigiendo a Zara...')"><img src="https://via.placeholder.com/60?text=Cinto" class="shop-img"><div><b>Cinturón</b><br><span style="color:green; font-weight:bold;">15.50€</span></div></div>
@@ -202,9 +231,17 @@
                         <div class="stat-box"><span class="stat-num" id="totalItems">0</span><small>Prendas</small></div>
                         <div class="stat-box"><span class="stat-num" id="totalValue" style="color:var(--success)">0€</span><small>Valor Total</small></div>
                     </div>
+                    <div style="margin-top:20px;">
+                        <h4 style="margin-bottom:5px;">🧺 Cesto de Ropa Sucia (Real)</h4>
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem;"><span>Limpio</span><span id="laundry-percent-txt">Sucio (0%)</span></div>
+                        <div class="laundry-bar"><div class="laundry-fill" id="laundry-fill-bar" style="width:0%;"></div></div>
+                        <p style="font-size:0.8rem; color:#666; margin-top:5px;" id="laundry-count-txt">0 prendas necesitan lavado.</p>
+                    </div>
+                    <h4 style="margin-top:30px;">💰 Coste por Uso (Top Rentables)</h4>
+                    <div id="cpw-list"></div>
                     <div class="vinted-card" id="vintedCard" style="display:none;">
                         <div><b style="font-size:1.1rem;">⚠️ Oportunidad de Venta</b><p style="margin:5px 0; font-size:0.9rem; color:#555;">No te pones esto hace 6 meses.</p></div>
-                        <button class="vinted-btn">Vender</button>
+                        <button class="vinted-btn" onclick="alert('Conectando API Vinted...')">Vender</button>
                     </div>
                 </div>
             </div>
@@ -244,7 +281,7 @@
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // ========================================================
-        // !!! PEGA TUS CLAVES AQUÍ ABAJO !!!
+        // !!! CLAVES INSERTADAS CORRECTAMENTE !!!
         // ========================================================
         const firebaseConfig = {
             apiKey: "AIzaSyC64wNZ-WDjm9PR6VrbDdLlXcofYw3iv44",
@@ -254,13 +291,11 @@
             messagingSenderId: "892808665541",
             appId: "1:892808665541:web:e5500dea81f5f59c6a93ac"
         };
-
         // ========================================================
 
         // INIT
         let app, auth, db;
         try {
-            if(!firebaseConfig.apiKey) console.error("Faltan claves");
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
@@ -273,7 +308,6 @@
         document.getElementById('btn-auth-action').addEventListener('click', async () => {
             const e = document.getElementById('auth-email').value;
             const p = document.getElementById('auth-pass').value;
-            if(!auth) return alert("Pon las claves en el código");
             try {
                 try { await signInWithEmailAndPassword(auth, e, p); } 
                 catch(err) { await createUserWithEmailAndPassword(auth, e, p); }
@@ -349,6 +383,7 @@
                 color: document.getElementById('colorHex').value,
                 desc: document.getElementById('descInput').value || "Prenda",
                 price: document.getElementById('priceInput').value || 0,
+                isDirty: false, // Por defecto limpia
                 date: Date.now()
             };
             try { await addDoc(collection(db, "clothes"), item); alert("Guardado!"); loadData(); } catch(e) { alert(e.message); }
@@ -361,7 +396,39 @@
             const snap = await getDocs(q);
             wardrobeData = [];
             snap.forEach(doc => { let d=doc.data(); d.id=doc.id; wardrobeData.push(d); });
-            renderGallery('all'); updateStats();
+            renderGallery('all'); 
+            renderLaundry(); 
+            updateStats();
+        }
+
+        // --- NEW: LAUNDRY LOGIC ---
+        window.toggleDirty = async function(id, status) {
+            await updateDoc(doc(db, "clothes", id), { isDirty: status });
+            loadData();
+        }
+
+        function renderLaundry() {
+            const grid = document.getElementById('laundryGrid');
+            grid.innerHTML = "";
+            const dirtyItems = wardrobeData.filter(i => i.isDirty === true);
+            
+            if(dirtyItems.length === 0) { 
+                document.getElementById('emptyLaundry').style.display='block'; 
+            } else {
+                document.getElementById('emptyLaundry').style.display='none';
+            }
+
+            dirtyItems.forEach(i => {
+                const d = document.createElement('div'); d.className='card';
+                d.innerHTML=`
+                    <img src="${i.img}" style="filter: grayscale(100%); height: 140px;">
+                    <div class="card-info">
+                        <b>${i.desc}</b><br>
+                        <span style="color:#e17055; font-size:0.8rem">Sucio</span>
+                        <button class="btn-wash" onclick="toggleDirty('${i.id}', false)">✅ Lavado Completado</button>
+                    </div>`;
+                grid.appendChild(d);
+            });
         }
 
         // GALLERY
@@ -373,13 +440,22 @@
 
         function renderGallery(filter) {
             const grid = document.getElementById('galleryGrid'); grid.innerHTML = "";
-            const items = filter==='all' ? wardrobeData : wardrobeData.filter(i => i.cat === filter);
+            // Filtramos también que NO esté sucia
+            let items = wardrobeData.filter(i => i.isDirty !== true);
+            
+            if(filter !== 'all') items = items.filter(i => i.cat === filter);
+
             if(!items.length) { document.getElementById('emptyMsg').style.display='block'; return; }
             document.getElementById('emptyMsg').style.display='none';
+            
             items.forEach(i => {
                 const d = document.createElement('div'); d.className='card';
                 d.innerHTML=`
-                    <div class="card-actions"><button class="btn-icon" style="color:blue" onclick="openEdit('${i.id}')">✏️</button><button class="btn-icon" style="color:red" onclick="delItem('${i.id}')">🗑️</button></div>
+                    <div class="card-actions">
+                        <button class="btn-icon" style="color:orange" title="A la ropa sucia" onclick="toggleDirty('${i.id}', true)">🧺</button>
+                        <button class="btn-icon" style="color:blue" onclick="openEdit('${i.id}')">✏️</button>
+                        <button class="btn-icon" style="color:red" onclick="delItem('${i.id}')">🗑️</button>
+                    </div>
                     <img src="${i.img}">
                     <div class="card-info"><span class="price-badge">${i.price}€</span><b>${i.desc}</b><br><span class="badge">${i.cat}</span></div>`;
                 grid.appendChild(d);
@@ -417,12 +493,16 @@
             closeEditModal(); loadData();
         }
 
-        // --- OUTFIT & CALENDAR INTEGRATION (V14) ---
-        let currentGeneratedOutfit = null; // Store current generated items
+        // OUTFIT
+        let currentGeneratedOutfit = null;
 
         window.generateOutfit = function() {
             const s = document.getElementById('fStyle').value;
-            let pool = s==='all' ? wardrobeData : wardrobeData.filter(i=>i.style===s);
+            // Solo usamos ropa LIMPIA
+            let pool = wardrobeData.filter(i => i.isDirty !== true);
+            
+            if(s !== 'all') pool = pool.filter(i=>i.style===s);
+            
             const t = pool.filter(i=>i.cat==='top'||i.cat==='coat');
             const b = pool.filter(i=>i.cat==='bottom');
             const sh = pool.filter(i=>i.cat==='shoes');
@@ -432,35 +512,31 @@
             const saveBtn = document.getElementById('btn-save-outfit');
 
             if(!t.length || !b.length || !sh.length) { 
-                res.innerHTML="Falta ropa"; shop.style.display='none'; saveBtn.style.display='none'; return; 
+                res.innerHTML="Falta ropa limpia."; shop.style.display='none'; saveBtn.style.display='none'; return; 
             }
             
             const rT = t[Math.floor(Math.random()*t.length)];
             const rB = b[Math.floor(Math.random()*b.length)];
             const rS = sh[Math.floor(Math.random()*sh.length)];
             
-            // Guardamos referencia
             currentGeneratedOutfit = [rT, rB, rS];
 
             res.innerHTML = `<div class="outfit-piece"><img src="${rT.img}"><small>${rT.desc}</small></div>
                              <div class="outfit-piece"><img src="${rB.img}"><small>${rB.desc}</small></div>
                              <div class="outfit-piece"><img src="${rS.img}"><small>${rS.desc}</small></div>`;
             shop.style.display='block';
-            saveBtn.style.display='block'; // Mostrar botón guardar
+            saveBtn.style.display='block';
         }
 
-        // --- SIMULADOR DE DÍAS (V14) ---
+        // --- SIMULADOR DE DÍAS ---
         let currentSimDay = 14;
         let recordedDays = [2, 4, 8, 12]; 
-        let ootdHistory = {}; // Store real clothes for days
+        let ootdHistory = {}; 
 
         window.saveOutfitToCalendar = function() {
             if(!currentGeneratedOutfit) return;
-            
-            // Guardar en el día actual
             ootdHistory[currentSimDay] = currentGeneratedOutfit;
             if(!recordedDays.includes(currentSimDay)) recordedDays.push(currentSimDay);
-            
             alert(`¡Outfit guardado para el día ${currentSimDay}!`);
             initCalendar();
         }
@@ -482,7 +558,6 @@
                 const hasLook = recordedDays.includes(i);
                 let dot = hasLook ? `<div class="dot"></div>` : '';
                 let active = i === currentSimDay ? 'active' : '';
-                
                 let html = `<div class="calendar-day ${active}" onclick="clickDay(${i}, ${hasLook})">${i} ${dot}</div>`;
                 grid.innerHTML += html;
             }
@@ -494,26 +569,18 @@
                 const content = document.getElementById('ootdContent');
                 content.innerHTML = "";
 
-                // Si tenemos datos reales guardados (V14)
                 if(ootdHistory[day]) {
                     const items = ootdHistory[day];
-                    content.innerHTML = `<div class="ootd-gallery">
-                        <img src="${items[0].img}">
-                        <img src="${items[1].img}">
-                        <img src="${items[2].img}">
-                    </div><p style="margin-top:10px"><b>Look Guardado</b></p>`;
-                } 
-                // Fallback para días simulados antiguos
-                else if (wardrobeData.length > 0) {
+                    content.innerHTML = `<div class="ootd-gallery"><img src="${items[0].img}"><img src="${items[1].img}"><img src="${items[2].img}"></div><p style="margin-top:10px"><b>Look Guardado</b></p>`;
+                } else if (wardrobeData.length > 0) {
                     const r = wardrobeData[Math.floor(Math.random()*wardrobeData.length)];
-                    content.innerHTML = `<img src="${r.img}" class="ootd-preview-img"><p>Prenda aleatoria del historial.</p>`;
+                    content.innerHTML = `<img src="${r.img}" class="ootd-preview-img"><p>Prenda del historial.</p>`;
                 } else {
-                    content.innerHTML = "<p>No hay ropa subida.</p>";
+                    content.innerHTML = "<p>No hay ropa.</p>";
                 }
-                
                 document.getElementById('ootdModal').style.display = 'flex';
             } else if (day === currentSimDay) {
-                alert("Ve a la sección 'Outfits' para generar y guardar el look de hoy.");
+                alert("Ve a Outfits para guardar tu look.");
             }
         }
 
@@ -532,8 +599,25 @@
             wardrobeData.forEach(i => totalVal += parseFloat(i.price || 0));
             document.getElementById('totalValue').innerText = totalVal.toFixed(2) + '€';
             
+            // STATS REALES DE LAVANDERÍA
+            const total = wardrobeData.length;
+            const dirty = wardrobeData.filter(i => i.isDirty === true).length;
+            const percent = total > 0 ? Math.round((dirty / total) * 100) : 0;
+            
+            document.getElementById('laundry-count-txt').innerText = `${dirty} prendas necesitan lavado.`;
+            document.getElementById('laundry-percent-txt').innerText = `Sucio (${percent}%)`;
+            document.getElementById('laundry-fill-bar').style.width = `${percent}%`;
+
             if(wardrobeData.length > 0) {
                 if(wardrobeData.length >= 3) document.getElementById('vintedCard').style.display = 'flex';
+                const cpwList = document.getElementById('cpw-list');
+                cpwList.innerHTML = "";
+                wardrobeData.slice(0, 3).forEach(i => {
+                    const price = parseFloat(i.price) || 20; 
+                    const uses = Math.floor(Math.random() * 20) + 1;
+                    const cpw = (price / uses).toFixed(2);
+                    cpwList.innerHTML += `<div class="cpw-item"><div style="display:flex; align-items:center; gap:10px;"><img src="${i.img}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;"><div><b>${i.desc}</b><br><small>${uses} usos</small></div></div><div style="text-align:right;"><b>${cpw}€</b><br><small>/uso</small></div></div>`;
+                });
             }
         }
 
